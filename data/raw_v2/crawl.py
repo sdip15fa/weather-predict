@@ -29,8 +29,8 @@ def main():
         futures = []
         for year in range(2005, 2023):
             for i in [["01", "07"], ["08", "15"], ["16", "23"], ["24", "30"]]:
-                start_date = f"{year}06{i[0]}"
-                end_date = f"{year}06{i[1]}"
+                start_date = f"{year}08{i[0]}"
+                end_date = f"{year}08{i[1]}"
         
                 future = executor.submit(get_file_versions, start_date, end_date)
                 futures.append(future)

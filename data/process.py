@@ -1,7 +1,12 @@
 import csv
+import datetime
+import pandas as pd
+import numpy as np
 
 input_file = 'data.csv'
 output_file = 'processed_data.csv'
+
+
 
 # Function to separate date time into year, month, date, time, and minute
 def separate_datetime(date_time):
@@ -23,11 +28,23 @@ with open(input_file, 'r') as file:
         air_temperature = row[2]
         year, month, date, time, minute = separate_datetime(date_time)
         data.append([year, month, date, time, minute, air_temperature])
-
-# Write the processed data to a new CSV file
-with open(output_file, 'w', newline='') as file:
-    writer = csv.writer(file)
-    writer.writerow(['Year', 'Month', 'Date', 'Time', 'Minute', 'Air Temperature'])
-    writer.writerows(data)
-
+    df = pd.DataFrame(data, columns=['Year', 'Month', 'Date', 'Time', 'Minute', 'Air Temperature'])
+    df.dropna(inplace=True)
+    df['Air Temperature'] = pd.to_numeric(df['Air Temperature'], errors="coerce")
+    average_temperatures = df.groupby(['Year', 'Month', 'Date'])['Air Temperature'].mean().to_dict()
+    # print(average_temperatures)
+    data2 = []
+    for row in data:
+        try:    
+            seven_days_average = [average_temperatures[tuple((datetime.datetime(int(row[0]), int(row[1]), int(row[2])) - datetime.timedelta(days=i)).strftime('%Y-%m-%d').split("-"))] for i in range(0,8)]
+            row.append(seven_days_average[0])
+            row.append(seven_days_average[1])
+            row.append(seven_days_average[2])
+            row.append(np.mean(seven_days_average))
+            data2.append(row)
+        except KeyError as e:
+            pass
+        
+    df = pd.DataFrame(data2, columns=['Year', 'Month', 'Date', 'Time', 'Minute', 'Air Temperature', 'Previous Day Average', 'Two Days Before Average', 'Three Days Before Average', 'Last 7 Days Average'])
+    df.to_csv(output_file)
 print("Data processing complete.")

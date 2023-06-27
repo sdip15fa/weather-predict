@@ -31,7 +31,7 @@ upper_bound = mean_Y + threshold * std_Y
 df = df[(df['Air Temperature'] >= lower_bound) & (df['Air Temperature'] <= upper_bound)]
 
 # Extract the columns
-X = df[['Month', 'Date', 'Time']].values
+X = df[['Month', 'Date', 'Time', 'Previous Day Average', 'Two Days Before Average', 'Three Days Before Average', 'Last 7 Days Average']].values
 Y = df['Air Temperature'].values
 
 
@@ -53,7 +53,7 @@ X = np.delete(X, 0, 1)
 
 # Normalize X values
 scaler = MinMaxScaler()
-X_normalized = scaler.fit_transform(X)
+X = scaler.fit_transform(X)
 
 # Split the data into training and testing sets
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
@@ -61,17 +61,18 @@ X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_
 # Define the model architecture
 model = tf.keras.Sequential([
     tf.keras.layers.Flatten(),
-    tf.keras.layers.Dense(512, activation='relu', input_shape=(3,)),
+    tf.keras.layers.Dense(512, activation='relu', input_shape=(7,)),
+    tf.keras.layers.BatchNormalization(),
     tf.keras.layers.Dropout(0.1),
     tf.keras.layers.Dense(256, activation='relu'),
+    tf.keras.layers.BatchNormalization(),
     tf.keras.layers.Dropout(0.1),
     tf.keras.layers.Dense(256, activation='relu'),
+    tf.keras.layers.BatchNormalization(),
     tf.keras.layers.Dropout(0.1),
     tf.keras.layers.Dense(128, activation='relu'),
     tf.keras.layers.Dense(128, activation='relu'),
-    tf.keras.layers.Dense(128, activation='relu'),
-    tf.keras.layers.Dropout(0.1),
-    tf.keras.layers.Dense(64, activation='relu'),
+    # tf.keras.layers.Dropout(0.1),
     tf.keras.layers.Dense(64, activation='relu'),
     tf.keras.layers.Dense(64, activation='relu'),
     tf.keras.layers.Dense(32, activation='relu'),
@@ -130,4 +131,4 @@ for i in range(10):
     print("Actual:", Y_test[i])
     print()
 
-model.export("./model.oonx")
+model.save("./model.onnx")

@@ -24,7 +24,7 @@ with open(input_file, 'r') as file:
         row[1] = str(int(float(row[1]))).zfill(4)
         time = row[1][:2]
         minute = row[1][2:4]
-        temperature = row[2]
+        temperature = float(row[2]) / 10
         humidity = row[3]
         wind_speed = row[4]
         wind_direction = row[5]
@@ -32,7 +32,7 @@ with open(input_file, 'r') as file:
         data.append([date_time, year, month, date, time, minute, temperature])
     df = pd.DataFrame(data, columns=['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Temperature'])
     df.dropna(inplace=True)
-    df['Temperature'] = pd.to_numeric(df['Temperature'], errors="coerce") / 10
+    df['Temperature'] = pd.to_numeric(df['Temperature'], errors="coerce")
     average_temperatures = df.groupby(['Year', 'Month', 'Date'])['Temperature'].mean().to_dict()
     data2 = []
     for row in data:

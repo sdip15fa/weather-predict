@@ -32,7 +32,7 @@ with open(input_file, 'r') as file:
         data.append([date_time, year, month, date, time, minute, temperature])
     df = pd.DataFrame(data, columns=['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Temperature'])
     df.dropna(inplace=True)
-    df['Temperature'] = pd.to_numeric(df['Temperature'], errors="coerce")
+    df['Temperature'] = pd.to_numeric(df['Temperature'], errors="coerce") / 10
     average_temperatures = df.groupby(['Year', 'Month', 'Date'])['Temperature'].mean().to_dict()
     data2 = []
     for row in data:

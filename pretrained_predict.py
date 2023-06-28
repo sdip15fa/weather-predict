@@ -1,15 +1,18 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import tensorflow as tf
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+import matplotlib.pyplot as plt
 
 # Load the data
 input_file = 'data/processed_data.csv'
 df = pd.read_csv(input_file)
 
 # Rename the columns for better readability
-df.columns = ['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Temperature', 'Previous Day Average', 'Two Days Before Average', 'Three Days Before average', 'Last 7 Days Average', 'Previous Day Wind Speed', 'Previous Day Rainfall']
+df.columns = ['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Temperature', 'Previous Day Average',
+              'Two Days Before Average', 'Three Days Before average', 'Last 7 Days Average',
+              'Previous Day Wind Speed', 'Previous Day Rainfall']
 
 # Convert the 'Date' and 'Time' columns to integers
 df['Date'] = df['Date'].astype(int)
@@ -19,41 +22,55 @@ df['Time'] = df['Time'].astype(int)
 df['Time'] = df['Time'].apply(lambda x: str(x).zfill(4))
 
 # Combine the 'Date' and 'Time' columns into a single 'DateTime' column
-df['DateTime'] = pd.to_datetime(df['Date'].astype(str) + df['Time'], format='%Y%m%d%H%M')
+df['DateTime'] = pd.to_datetime(df['DateTime'].astype(int).astype(str) + df['Time'].astype(int).astype(str) +
+                                df['Minute'].astype(str), format='%Y%m%d%H%M')
 
 # Filter the data for June 2023
-june_2023_df = df.loc[(df['DateTime'] >= '2023-06-01') & (df['DateTime'] < '2023-07-01')]
+start_date = pd.Timestamp('2023-06-01')
+end_date = pd.Timestamp('2023-06-30')
+june_data = df[(df['DateTime'] >= start_date) & (df['DateTime'] <= end_date)]
 
-# Normalize the temperature values between 0 and 1
+# Prepare the data for prediction
+time_steps = 60
 scaler = MinMaxScaler(feature_range=(0, 1))
-june_2023_df['Temperature'] = scaler.fit_transform(june_2023_df['Temperature'].values.reshape(-1, 1))
+scaled_temperature = scaler.fit_transform(june_data['Temperature'].values.reshape(-1, 1))
+data = []
+for i in range(len(scaled_temperature) - time_steps):
+    data.append(scaled_temperature[i:i + time_steps])
+data = np.array(data)
 
-# Prepare the input features and target variable
-input_features = june_2023_df[['Previous Day Average', 'Two Days Before Average', 'Three Days Before average', 'Last 7 Days Average', 'Previous Day Wind Speed', 'Previous Day Rainfall']]
-target_variable = june_2023_df['Temperature']
+# Load the trained LSTM model
+model = tf.keras.models.load_model("lstm.keras")
 
-# Convert input features and target variable to numpy arrays
-input_features = input_features.to_numpy()
-target_variable = target_variable.to_numpy()
+# Make predictions
+predictions = model.predict(data)
 
-# Reshape the input features to 3D shape (samples, timesteps, features)
-input_features = input_features.reshape(input_features.shape[0], 1, input_features.shape[1])
+# Rescale the predictions back to the original range
+scaled_predictions = predictions.reshape(-1, 1)
+predicted_temperature = scaler.inverse_transform(scaled_predictions)
 
-# Load the pre-trained LSTM model
-model = tf.keras.models.load_model('lstm.keras')
+# Extract the actual temperatures for June 2023
+actual_temperature = june_data['Temperature'].values[time_steps:]
 
-# Make predictions for the June 2023 data
-predicted_temperature = model.predict(input_features)
+# Calculate MSE and MAE
+mse = mean_squared_error(actual_temperature, predicted_temperature)
+mae = mean_absolute_error(actual_temperature, predicted_temperature)
 
-# Rescale the predicted temperature values to the original scale
-predicted_temperature = scaler.inverse_transform(predicted_temperature)
+# Convert the predictions to a DataFrame
+prediction_df = pd.DataFrame({'DateTime': june_data['DateTime'].values[time_steps:], 'Actual': actual_temperature.flatten(),
+                              'Predicted': predicted_temperature.flatten()})
 
-# Visualize the actual vs. predicted temperatures for June 2023
+# Print MSE and MAE
+print("Mean Squared Error (MSE):", mse)
+print("Mean Absolute Error (MAE):", mae)
+
+# Plot the actual vs. predicted temperatures
 plt.figure(figsize=(12, 6))
-plt.plot(june_2023_df['DateTime'], target_variable, label='Actual')
-plt.plot(june_2023_df['DateTime'], predicted_temperature, label='Predicted')
-plt.xlabel('Date')
+plt.plot(prediction_df['DateTime'], prediction_df['Actual'], label='Actual')
+plt.plot(prediction_df['DateTime'], prediction_df['Predicted'], label='Predicted')
+plt.xlabel('DateTime')
 plt.ylabel('Temperature')
-plt.title('Actual vs. Predicted Temperatures (June 2023)')
+plt.title('Actual vs. Predicted Temperatures for June 2023')
 plt.legend()
+plt.xticks(rotation=45)
 plt.show()

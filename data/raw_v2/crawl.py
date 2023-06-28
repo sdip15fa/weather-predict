@@ -27,17 +27,21 @@ def main():
     
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = []
-        for year in range(2005, 2023):
-            for i in [["01", "07"], ["08", "15"], ["16", "23"], ["24", "30"]]:
-                start_date = f"{year}08{i[0]}"
-                end_date = f"{year}08{i[1]}"
-        
-                future = executor.submit(get_file_versions, start_date, end_date)
-                futures.append(future)
+        for year in range(2020, 2023):
+            for month in ["01", "02", "03, '04", '05', '06', '07', '08', '09', '10', '11', '12']:        
+                for i in [["01", "07"], ["08", "15"], ["16", "23"], ["24", "30"]]:
+                    start_date = f"{year}{month}{i[0]}"
+                    end_date = f"{year}{month}{i[1]}"
+                    future = executor.submit(get_file_versions, start_date, end_date)
+                    futures.append(future)
         
         for future in concurrent.futures.as_completed(futures):
-            timestamps = future.result()
-            download_files(timestamps, download_dir)
+            try:
+                timestamps = future.result()
+                download_files(timestamps, download_dir)
+            except KeyError as e:
+                print(e)
+                pass
 
 if __name__ == "__main__":
     main()

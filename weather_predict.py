@@ -11,45 +11,28 @@ input_file = './data/processed_data.csv'
 
 df = pd.read_csv(input_file)
 
-# df = df[df["Month"] == 7]
-
 # Remove rows with NaN values
 df.dropna(inplace=True)
 
+# df['DateTime'] = pd.to_datetime(df['DateTime'], format="%Y%m%d%H%M")
+
 # Define the threshold for removing extreme Y values
-threshold = 3  # Adjust this value based on your dataset and requirements
+threshold = 3.5  # Adjust this value based on your dataset and requirements
 
 # Calculate the mean and standard deviation of Y
-mean_Y = np.mean(df['Air Temperature'])
-std_Y = np.std(df['Air Temperature'])
+mean_Y = np.mean(df['Temperature'])
+std_Y = np.std(df['Temperature'])
 
 # Define the range of acceptable Y values
 lower_bound = mean_Y - threshold * std_Y
 upper_bound = mean_Y + threshold * std_Y
 
 # Filter out rows with Y values outside the acceptable range
-df = df[(df['Air Temperature'] >= lower_bound) & (df['Air Temperature'] <= upper_bound)]
+df = df[(df['Temperature'] >= lower_bound) & (df['Temperature'] <= upper_bound)]
 
 # Extract the columns
 X = df[['Month', 'Date', 'Time', 'Previous Day Average', 'Two Days Before Average', 'Three Days Before Average', 'Last 7 Days Average']].values
-Y = df['Air Temperature'].values
-
-
-"""
-# Randomly choose one data point with the same X values
-X_unique, Y_unique = [], []
-unique_X_values = set(tuple(x) for x in X)
-for x in unique_X_values:
-    indices = [i for i, xx in enumerate(X) if tuple(xx) == x]
-    random_index = np.random.choice(indices)
-    X_unique.append(X[random_index])
-    Y_unique.append(Y[random_index])
-
-X = np.array(X_unique)
-Y = np.array(Y_unique)
-
-X = np.delete(X, 0, 1)
-"""
+Y = df['Temperature'].values
 
 # Normalize X values
 scaler = MinMaxScaler()
@@ -85,7 +68,7 @@ model.compile(optimizer=optimizer, loss="mean_squared_error")
 
 # Define early stopping and learning rate scheduler
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)
-lr_scheduler = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=10, min_lr=1e-6)
+lr_scheduler = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=10, min_lr=1e-6)
 
 # Train the model
 history = model.fit(X_train, Y_train, epochs=500, batch_size=64, validation_data=(X_test, Y_test), callbacks=[early_stopping, lr_scheduler])
@@ -131,4 +114,5 @@ for i in range(10):
     print("Actual:", Y_test[i])
     print()
 
-model.save("./model.onnx")
+# Save the TensorFlow model
+model.save("./model.keras")

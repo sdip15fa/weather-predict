@@ -6,7 +6,7 @@ import glob
 rows = []
 
 # Iterate over all the files in the directory
-for filename in glob.glob("./raw_v2/downloads/*.csv", recursive=True):
+for filename in glob.glob("./raw/**/*.csv", recursive=True):
     if filename.endswith('.csv'):  # Only process CSV files
         file_path = filename
         with open(file_path, 'r') as csv_file:

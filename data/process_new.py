@@ -29,22 +29,31 @@ with open(input_file, 'r') as file:
         wind_speed = row[4]
         wind_direction = row[5]
         rainfall = row[6]
-        data.append([date_time, year, month, date, time, minute, temperature])
-    df = pd.DataFrame(data, columns=['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Temperature'])
+        data.append([date_time, year, month, date, time, minute, temperature, wind_speed, rainfall])
+    df = pd.DataFrame(data, columns=['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Temperature', 'Wind Speed', 'Rainfall'])
     df.dropna(inplace=True)
     df['Temperature'] = pd.to_numeric(df['Temperature'], errors="coerce")
+    df['Wind Speed'] = pd.to_numeric(df['Wind Speed'], errors="coerce")
+    df['Rainfall'] = pd.to_numeric(df['Rainfall'], errors="coerce")
     average_temperatures = df.groupby(['Year', 'Month', 'Date'])['Temperature'].mean().to_dict()
+    average_wind_speeds = df.groupby(['Year', 'Month', 'Date'])['Wind Speed'].mean().to_dict()
+    average_rainfalls = df.groupby(['Year', 'Month', 'Date'])['Rainfall'].mean().to_dict()
     data2 = []
     for row in data:
         try:
-            seven_days_average = [average_temperatures[tuple((datetime.datetime(int(row[1]), int(row[2]), int(row[3])) - datetime.timedelta(days=i)).strftime('%Y-%m-%d').split("-"))] for i in range(0, 8)]
+            prev_days = [tuple((datetime.datetime(int(row[1]), int(row[2]), int(row[3])) - datetime.timedelta(days=i)).strftime('%Y-%m-%d').split("-")) for i in range(1,8)]
+            seven_days_average = [average_temperatures[prev_days[i]] for i in range(0, 7)]
+            row.pop(-1)
+            row.pop(-1)
             row.append(seven_days_average[0])
             row.append(seven_days_average[1])
             row.append(seven_days_average[2])
             row.append(np.mean(seven_days_average))
+            row.append(average_wind_speeds[prev_days[0]])
+            row.append(average_rainfalls[prev_days[0]])
             data2.append(row)
         except KeyError:
             pass
-    df = pd.DataFrame(data2, columns=['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Temperature', 'Previous Day Average', 'Two Days Before Average', 'Three Days Before Average', 'Last 7 Days Average'])
+    df = pd.DataFrame(data2, columns=['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Temperature', 'Previous Day Average', 'Two Days Before Average', 'Three Days Before Average', 'Last 7 Days Average', 'Previous Day Wind Speed', 'Previous Day Rainfall'])
     df.to_csv(output_file, index=False)
 print("Data processing complete.")

@@ -4,6 +4,7 @@
 # In[121]:
 
 
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 import pandas as pd
 import numpy as np
 import tensorflow as tf
@@ -17,9 +18,11 @@ from sklearn.preprocessing import MinMaxScaler
 
 
 input_file = 'data/processed_data.csv'
-df = pd.read_csv('data/processed_data.csv', parse_dates=['DateTime'], index_col='DateTime')
+df = pd.read_csv('data/processed_data.csv',
+                 parse_dates=['DateTime'], index_col='DateTime')
 df = df.resample('60T').mean()
-df = df[(df['Temperature'] >= df['Temperature'].quantile(0.1)) & (df['Temperature'] <= df['Temperature'].quantile(0.9))]
+df = df[(df['Temperature'] >= df['Temperature'].quantile(0.1)) &
+        (df['Temperature'] <= df['Temperature'].quantile(0.9))]
 # df["DateTime"] = pd.to_datetime(df.index)
 df = df.reset_index()
 
@@ -30,7 +33,7 @@ df = df.reset_index()
 
 
 # df.columns = ['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Temperature', 'Previous Day Average', 'Two Days Before Average',
-              #'Three Days Before average', 'Last 7 Days Average', 'Previous Day Wind Speed', 'Previous Day Rainfall']
+# 'Three Days Before average', 'Last 7 Days Average', 'Previous Day Wind Speed', 'Previous Day Rainfall']
 
 
 # Convert the 'Date' and 'Time' columns to integers
@@ -59,9 +62,6 @@ df['Time'] = df['Time'].apply(lambda x: str(x).zfill(4))
 
 
 # In[ ]:
-
-
-
 
 
 # Remove rows with a specific value (e.g., 32767) in 'Temperature' column
@@ -96,7 +96,8 @@ upper_bound = mean_Y + threshold * std_Y
 # In[130]:
 
 
-df = df[(df['Temperature'] >= lower_bound) & (df['Temperature'] <= upper_bound)]
+df = df[(df['Temperature'] >= lower_bound) &
+        (df['Temperature'] <= upper_bound)]
 
 
 # Prepare the data for LSTM
@@ -108,28 +109,33 @@ time_steps = 60  # Number of time steps for the LSTM model
 scaler = MinMaxScaler(feature_range=(0, 1))  # Scale the data to [0, 1]
 
 
-# Scale the temperature values
-
-# In[132]:
-
-
-scaled_temperature = scaler.fit_transform(df['Temperature'].values.reshape(-1, 1))
-
-
 # Create sequences of input data and corresponding target values
 
 # In[133]:
 
 
+# Filter out the outliers and invalid values for the new features
+# Replace the specific invalid values (e.g., 32767) with np.nan
+df['Wind Speed'] = df['Wind Speed'].replace(32767, np.nan)
+df['Rainfall'] = df['Rainfall'].replace(32767, np.nan)
+df['Wind Direction'] = df['Wind Direction'].replace(32767, np.nan)
+df = df[0 <= df['Wind Direction'] <= 360]
+
+# Remove rows with missing values
+df = df.dropna()
+
+# Scale the temperature, wind speed, rainfall, and wind direction values
+features = df[['Temperature', 'Wind Speed',
+               'Rainfall', 'Wind Direction']].values
+scaled_features = scaler.fit_transform(features)
+
+# Create sequences of input data and corresponding target values
 data = []
 target = []
-for i in range(len(scaled_temperature) - time_steps - 24):
-    data.append(scaled_temperature[i:i+time_steps])
-    target.append(scaled_temperature[i+time_steps+24])
-
-
-# In[134]:
-
+for i in range(24, len(scaled_features) - time_steps):
+    data.append(scaled_features[i-24:i+time_steps-24])
+    # Only the temperature is the target
+    target.append(scaled_features[i+time_steps, 0])
 
 data = np.array(data)
 target = np.array(target)
@@ -146,7 +152,7 @@ df["DateTime"]
 # In[136]:
 
 
-exclude_year = 2023
+exclude_year = 2022
 exclude_month = 6
 exclude_day = 1
 
@@ -169,9 +175,22 @@ val_data, val_target = data[exclude_index:], target[exclude_index:]
 
 
 model = tf.keras.Sequential([
-    tf.keras.layers.LSTM(64, return_sequences=True, input_shape=(time_steps, 1)),
-    tf.keras.layers.LSTM(64),
-    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.LSTM(256, return_sequences=True,
+                         input_shape=(time_steps, 4)),
+    tf.keras.layers.BatchNormalization(),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.LSTM(256, return_sequences=True),
+    tf.keras.layers.BatchNormalization(),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.LSTM(256, return_sequences=True),
+    tf.keras.layers.BatchNormalization(),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.LSTM(256),
+    tf.keras.layers.BatchNormalization(),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(128, activation='relu'),
+    tf.keras.layers.BatchNormalization(),
+    tf.keras.layers.Dropout(0.2),
     tf.keras.layers.Dense(1)
 ])
 
@@ -190,8 +209,10 @@ model.compile(loss='mean_absolute_error', optimizer=optimizer)
 # In[140]:
 
 
-early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
-lr_scheduler = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=1e-6)
+early_stopping = tf.keras.callbacks.EarlyStopping(
+    monitor='val_loss', patience=3, restore_best_weights=True)
+lr_scheduler = tf.keras.callbacks.ReduceLROnPlateau(
+    monitor='val_loss', factor=0.2, patience=3, min_lr=1e-6)
 
 
 # Train the LSTM model
@@ -227,10 +248,10 @@ predicted_temperature = scaler.inverse_transform(scaled_predictions)
 # In[144]:
 
 
-from sklearn.metrics import mean_squared_error, mean_absolute_error
-
-mse = mean_squared_error(scaler.inverse_transform(val_target), predicted_temperature)
-mae = mean_absolute_error(scaler.inverse_transform(val_target), predicted_temperature)
+mse = mean_squared_error(scaler.inverse_transform(
+    val_target), predicted_temperature)
+mae = mean_absolute_error(scaler.inverse_transform(
+    val_target), predicted_temperature)
 
 
 # In[145]:
@@ -246,7 +267,8 @@ print("Mean Absolute Error (MAE):", mae)
 
 
 plt.figure(figsize=(12, 6))
-plt.plot(range(len(val_target)), scaler.inverse_transform(val_target), label='Actual')
+plt.plot(range(len(val_target)), scaler.inverse_transform(
+    val_target), label='Actual')
 plt.plot(range(len(val_target)), predicted_temperature, label='Predicted')
 plt.xlabel('Time')
 plt.ylabel('Temperature')
@@ -262,7 +284,8 @@ plt.show()
 
 plt.figure(figsize=(12, 6))
 plt.plot(range(len(train_target)), train_target, label='Actual')
-plt.plot(range(len(train_target)), model.predict(train_data), label='Predicted')
+plt.plot(range(len(train_target)), model.predict(
+    train_data), label='Predicted')
 plt.xlabel('Time')
 plt.ylabel('Temperature')
 plt.title('Actual vs. Predicted Temperatures (Training Set)')
@@ -276,4 +299,3 @@ plt.show()
 
 
 model.save("lstm.keras")
-

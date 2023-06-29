@@ -29,7 +29,7 @@ scaler = MinMaxScaler(feature_range=(0, 1))  # Scale the data to [0, 1]
 scaled_temperature = scaler.fit_transform(df['Temperature'].values.reshape(-1, 1))
 
 # Generate predictions for June 30, 2023
-date_30th_june = pd.date_range('2023-06-30 00:00:00', '2023-06-30 23:00:00', freq='H')
+date_30th_june = pd.date_range('2023-06-29 00:00:00', '2023-06-29 23:00:00', freq='H')
 
 # Load the pre-trained model
 model = tf.keras.models.load_model("lstm.keras")

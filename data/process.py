@@ -28,23 +28,24 @@ with open(input_file, 'r') as file:
         air_temperature = row[2]
         year, month, date, time, minute = separate_datetime(date_time)
         data.append([date_time, year, month, date, time, minute, air_temperature])
-    df = pd.DataFrame(data, columns=['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Air Temperature'])
-    df.dropna(inplace=True)
-    df['Air Temperature'] = pd.to_numeric(df['Air Temperature'], errors="coerce")
-    average_temperatures = df.groupby(['Year', 'Month', 'Date'])['Air Temperature'].mean().to_dict()
+    df = pd.DataFrame(data, columns=['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Temperature'])
+    #df.dropna(inplace=True)
+    df['Temperature'] = pd.to_numeric(df['Temperature'], errors="coerce")
+    average_temperatures = df.groupby(['Year', 'Month', 'Date'])['Temperature'].mean().to_dict()
     # print(average_temperatures)
     data2 = []
     for row in data:
         try:    
-            seven_days_average = [average_temperatures[tuple((datetime.datetime(int(row[1]), int(row[2]), int(row[3])) - datetime.timedelta(days=i)).strftime('%Y-%m-%d').split("-"))] for i in range(0,8)]
+            seven_days_average = [average_temperatures[tuple((datetime.datetime(int(row[1]), int(row[2]), int(row[3])) - datetime.timedelta(days=i)).strftime('%Y-%m-%d').split("-"))] for i in range(1,8)]
             row.append(seven_days_average[0])
             row.append(seven_days_average[1])
             row.append(seven_days_average[2])
             row.append(np.mean(seven_days_average))
-            data2.append(row)
         except KeyError:
             pass
+        finally:
+            data2.append(row)
         
-    df = pd.DataFrame(data2, columns=['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Air Temperature', 'Previous Day Average', 'Two Days Before Average', 'Three Days Before Average', 'Last 7 Days Average'])
+    df = pd.DataFrame(data2, columns=['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Temperature', 'Previous Day Average', 'Two Days Before Average', 'Three Days Before Average', 'Last 7 Days Average'])
     df.to_csv(output_file)
 print("Data processing complete.")

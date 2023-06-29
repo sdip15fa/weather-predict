@@ -1,4 +1,5 @@
 import csv
+import pandas as pd
 
 input_file = 'processed_data.csv'
 output_file = 'TaiMoShan.csv'
@@ -19,6 +20,8 @@ with open(input_file, 'r') as input_csv, open(output_file, 'a', newline='') as o
     reader = csv.DictReader(input_csv)
     writer = csv.writer(output_csv)
 
+    output_df = pd.read_csv(output_file)
+
     for row in reader:
         year = int(row['Year'])
         month = int(row['Month'])
@@ -26,9 +29,9 @@ with open(input_file, 'r') as input_csv, open(output_file, 'a', newline='') as o
         hour = int(row['Time'])
         minute = int(row['Minute'])
 
-        if year >= 2023 and month >= 6 and day >= 1 and row['Air Temperature'] != "N/A":
+        if year >= 2023 and month >= 6 and day >= 26 and row['Temperature'] != "N/A":
             # Extract the required fields from the row
-            temperature = float(row['Air Temperature']) * 10
+            temperature = float(row['Temperature']) * 10
             humidity = ''  # Add your logic to extract humidity from the row
             wind_speed = ''  # Add your logic to extract wind speed from the row
             wind_direction = ''  # Add your logic to extract wind direction from the row
@@ -37,16 +40,17 @@ with open(input_file, 'r') as input_csv, open(output_file, 'a', newline='') as o
             date_str = f'{year}{month:02d}{day:02d}'
             time_str = f'{hour:02d}{minute:02d}'
 
-            # Append the extracted data to the output file
-            writer.writerow([
-                date_str,
-                time_str,
-                temperature,
-                humidity,
-                wind_speed,
-                wind_direction,
-                '',  # Assuming rainfall data is not available in the input file, set it as empty
-                wind_direction
-            ])
+            if not len(output_df[(output_df["YYYYMMDD"].astype(float) == float(date_str)) & (output_df["HHMM"].astype(float) == float(time_str))]):
+                # Append the extracted data to the output file
+                writer.writerow([
+                    date_str,
+                    time_str,
+                    temperature,
+                    humidity,
+                    wind_speed,
+                    wind_direction,
+                    '',  # Assuming rainfall data is not available in the input file, set it as empty
+                    wind_direction
+                ])
 
 print("Data appended successfully.")

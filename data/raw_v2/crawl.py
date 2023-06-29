@@ -27,9 +27,9 @@ def main():
     
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = []
-        for year in range(2020, 2023):
-            for month in ["01", "02", "03, '04", '05', '06', '07', '08', '09', '10', '11', '12']:        
-                for i in [["01", "07"], ["08", "15"], ["16", "23"], ["24", "30"]]:
+        for year in [2023]: # range(2020, 2023):
+            for month in ["06"]:  # ["01", "02", "03, '04", '05', '06', '07', '08', '09', '10', '11', '12']:        
+                for i in [["26", "28"]]: # [["01", "07"], ["08", "15"], ["16", "23"], ["24", "30"]]:
                     start_date = f"{year}{month}{i[0]}"
                     end_date = f"{year}{month}{i[1]}"
                     future = executor.submit(get_file_versions, start_date, end_date)

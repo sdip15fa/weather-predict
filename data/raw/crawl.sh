@@ -1,13 +1,13 @@
 #!/bin/bash
-for year in {2021..2023}; do
+for year in 2023; do
     mkdir $year;
-    for month in 07; do
+    for month in 06; do
         mkdir "$year/$month";
-        for date in {01..31}; do
+        for date in 29; do
             mkdir "$year/$month/$date";
             for hour in {00..23}; do
                 mkdir "$year/$month/$date/$hour";
-                for time in 00 10 20 30 40 50; do
+                for time in {00..59}; do
                     filename="$year/$month/$date/$hour/$time.csv"
                     if [ -f "$filename" ]; then
                         continue;

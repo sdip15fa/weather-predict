@@ -55,5 +55,6 @@ with open(input_file, 'r') as file:
         except KeyError:
             pass
     df = pd.DataFrame(data2, columns=['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Temperature', 'Previous Day Average', 'Two Days Before Average', 'Three Days Before Average', 'Last 7 Days Average', 'Previous Day Wind Speed', 'Previous Day Rainfall'])
+    df['DateTime'] = pd.to_datetime(df['DateTime'].astype(float).astype(int).astype(str) + df['Time'].astype(int).astype(str) + df['Minute'].astype(str), format='%Y%m%d%H%M')
     df.to_csv(output_file, index=False)
 print("Data processing complete.")

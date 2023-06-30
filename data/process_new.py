@@ -32,6 +32,6 @@ with open(input_file, 'r') as file:
         data.append([date_time, year, month, date, time, minute, temperature, wind_speed, wind_direction, rainfall])
     df = pd.DataFrame(data, columns=['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Temperature', 'Wind Speed', 'Wind Direction', 'Rainfall'])
     df.dropna(inplace=True)
-    df['DateTime'] = pd.to_datetime(df['DateTime'].astype(float).astype(int).astype(str) + df['Time'].astype(int).astype(str) + df['Minute'].astype(str), format='%Y%m%d%H%M')
+    df['DateTime'] = pd.to_datetime(df['DateTime'].astype(float).astype(int).astype(str) + df['Time'].astype(str) + df['Minute'].astype(str), format='%Y%m%d%H%M')
     df.to_csv(output_file, index=False)
 print("Data processing complete.")

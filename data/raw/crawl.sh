@@ -3,7 +3,7 @@ for year in 2023; do
     mkdir $year;
     for month in 06; do
         mkdir "$year/$month";
-        for date in 29; do
+        for date in {29..30}; do
             mkdir "$year/$month/$date";
             for hour in {00..23}; do
                 mkdir "$year/$month/$date/$hour";

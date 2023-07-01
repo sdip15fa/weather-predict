@@ -29,8 +29,8 @@ with open(input_file, 'r') as file:
         wind_speed = row[4]
         wind_direction = row[5]
         rainfall = row[6]
-        data.append([date_time, year, month, date, time, minute, temperature, wind_speed, wind_direction, rainfall])
-    df = pd.DataFrame(data, columns=['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Temperature', 'Wind Speed', 'Wind Direction', 'Rainfall'])
+        data.append([date_time, year, month, date, time, minute, temperature, wind_speed, wind_direction, rainfall, humidity])
+    df = pd.DataFrame(data, columns=['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Temperature', 'Wind Speed', 'Wind Direction', 'Rainfall', 'Humidity'])
     df.dropna(inplace=True)
     df['DateTime'] = pd.to_datetime(df['DateTime'].astype(float).astype(int).astype(str) + df['Time'].astype(str) + df['Minute'].astype(str), format='%Y%m%d%H%M')
     df.to_csv(output_file, index=False)

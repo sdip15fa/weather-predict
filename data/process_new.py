@@ -27,7 +27,7 @@ with open(input_file, 'r') as file:
         temperature = float(row[2]) / 10
         humidity = row[3]
         wind_speed = row[4]
-        wind_direction = row[5]
+        wind_direction = row[5] or row[7]
         rainfall = row[6]
         data.append([date_time, year, month, date, time, minute, temperature, wind_speed, wind_direction, rainfall, humidity])
     df = pd.DataFrame(data, columns=['DateTime', 'Year', 'Month', 'Date', 'Time', 'Minute', 'Temperature', 'Wind Speed', 'Wind Direction', 'Rainfall', 'Humidity'])

@@ -1,11 +1,11 @@
 #!/bin/bash
 for year in 2023; do
     mkdir $year;
-    for month in 06; do
+    for month in 07; do
         mkdir "$year/$month";
-        for date in {29..30}; do
+        for date in 03; do
             mkdir "$year/$month/$date";
-            for hour in {00..23}; do
+            for hour in 21; do
                 mkdir "$year/$month/$date/$hour";
                 for time in {00..59}; do
                     filename="$year/$month/$date/$hour/$time.csv"

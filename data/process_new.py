@@ -1,10 +1,9 @@
 import csv
-import datetime
 import pandas as pd
-import numpy as np
+import sys
 
-input_file = 'TaiMoShan.csv'
-output_file = 'processed_data.csv'
+input_file = sys.argv[1] if len(sys.argv) > 1 else 'TaiMoShan.csv'
+output_file = sys.argv[2] if len(sys.argv) > 2 else 'processed_data.csv'
 
 # Function to separate date time into year, month, date, time, and minute
 def separate_datetime(date_time):

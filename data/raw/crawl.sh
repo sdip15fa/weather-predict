@@ -3,9 +3,9 @@ for year in 2023; do
     mkdir $year;
     for month in 07; do
         mkdir "$year/$month";
-        for date in 03; do
+        for date in 04; do
             mkdir "$year/$month/$date";
-            for hour in 21; do
+            for hour in 09; do
                 mkdir "$year/$month/$date/$hour";
                 for time in {00..59}; do
                     filename="$year/$month/$date/$hour/$time.csv"

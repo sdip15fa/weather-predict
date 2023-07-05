@@ -2,8 +2,20 @@
 
 ## lstm-31-standard-scale.keras
 
+### 100 samples
+
 Mean mse: 1.3301364859153182\
 Mean mae: 0.7860621329590152
+
+#### July
+
+Mean mse: 0.80207726491494\
+Mean mae: 0.6404199945926666
+
+### 500 samples
+
+Mean mse: 1.8233533360285212\
+Mean mae: 0.9130220972483978
 
 ### 3 July
 
@@ -17,8 +29,20 @@ mean absolute error: 0.4287443333333343
 
 ## lstm-21.keras
 
+### 100 samples (NOT the same samples)
+
 Mean mse: 1.4389040921201766\
 Mean mae: 0.8418800602555275
+
+#### July
+
+Mean mse: 0.8785829137258339\
+Mean mae: 0.7045396378040314
+
+### 500 samples (NOT the same samples)
+
+Mean mse: 1.8686362317624847\
+Mean mae: 0.9302549582504667
 
 ### 3 July
 

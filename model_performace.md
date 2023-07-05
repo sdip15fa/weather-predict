@@ -53,3 +53,10 @@ mean absolute error: 0.3459289166666668
 
 mean squared error: 0.5667596347340832\
 mean absolute error: 0.4497885833333329
+
+## lstm-32-standard-scale-16steps.keras
+
+### 1000 samples
+
+Mean mse: 0.18841170006495292
+Mean mae: 0.3279478771710768

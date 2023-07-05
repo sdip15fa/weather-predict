@@ -60,3 +60,20 @@ mean absolute error: 0.4497885833333329
 
 Mean mse: 0.18841170006495292
 Mean mae: 0.3279478771710768
+
+### 10000 samples
+
+Mean mse: 0.26812188855268576
+Mean mae: 0.33343772142978384
+
+### Early July
+
+Mean mse: 0.6828215889899365
+Mean mae: 0.413766446518898
+
+## lstm-33
+
+### Early July
+
+Mean mse: 0.3580409782558534
+Mean mae: 0.3967901562690735
